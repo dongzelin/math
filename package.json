@@ -1,0 +1,21 @@
+{
+  "name": "zhixueban",
+  "version": "1.0.0",
+  "private": true,
+  "description": "智学伴 · 高中数学学情诊断与分层教学（A+B）",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "seed": "npm run seed -w server",
+    "build": "npm run build -w web",
+    "start": "npm run start -w server"
+  },
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

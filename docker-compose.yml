@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8788
+      HOST: 0.0.0.0
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://passion8.cc/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.5}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-8000}
+    volumes:
+      - zhixueban_data:/app/server/data
+    expose:
+      - "8788"
+
+volumes:
+  zhixueban_data:
