@@ -76,6 +76,19 @@ function deny(res, status, error) {
   return null;
 }
 
+router.patch('/auth/profile', (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+
+  db.update('accounts', (account) => account.id === req.auth.id, { name });
+  if (req.auth.role === 'teacher') {
+    db.update('teachers', (teacher) => teacher.id === req.auth.teacherId, { name });
+  } else {
+    db.update('students', (student) => student.id === req.auth.studentId, { name });
+  }
+  res.json({ ...req.auth, name });
+});
+
 function requireTeacher(req, res) {
   return req.auth?.role === 'teacher' || deny(res, 403, '仅教师可执行此操作');
 }
@@ -142,6 +155,14 @@ router.post('/classes', (req, res) => {
   res.json(row);
 });
 
+router.patch('/classes/:id', (req, res) => {
+  if (!requireTeacherClass(req, res, req.params.id)) return;
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  db.update('classes', (item) => item.id === req.params.id, { name });
+  res.json(getClass(req.params.id));
+});
+
 router.get('/classes/:id/students', (req, res) => {
   if (!requireTeacherClass(req, res, req.params.id)) return;
   res.json(getClassStudents(req.params.id));
@@ -176,6 +197,22 @@ router.patch('/students/:id/layer', (req, res) => {
   const { layer } = req.body || {};
   if (!['A', 'B', 'C'].includes(layer)) return res.status(400).json({ error: 'layer A/B/C' });
   res.json(updateStudentLayer(req.params.id, layer));
+});
+
+router.patch('/students/:id', (req, res) => {
+  const student = db.find('students', (item) => item.id === req.params.id);
+  if (!student) return res.status(404).json({ error: 'student not found' });
+  const canEdit =
+    req.auth.role === 'student'
+      ? req.auth.studentId === student.id
+      : Boolean(requireTeacherClass(req, res, student.class_id));
+  if (!canEdit) return;
+
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  db.update('students', (item) => item.id === student.id, { name });
+  db.update('accounts', (account) => account.student_id === student.id, { name });
+  res.json(db.find('students', (item) => item.id === student.id));
 });
 
 router.get('/classes/:id/diagnosis', (req, res) => {
