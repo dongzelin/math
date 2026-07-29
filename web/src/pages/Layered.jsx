@@ -10,7 +10,7 @@ const KP_OPTIONS = [
 ];
 
 export default function Layered() {
-  const { classId, showToast, refreshNotices } = useContext(AppContext);
+  const { classId, showToast, refreshNotices, user } = useContext(AppContext);
   const [params] = useSearchParams();
   const [kpName, setKpName] = useState(params.get('kp') || '函数单调性');
   const [lessonType, setLessonType] = useState('巩固练');
@@ -26,7 +26,11 @@ export default function Layered() {
   const generate = async () => {
     setBusy(true);
     try {
-      const r = await api.genSheet({ kpName, lessonType, classContext: '高一(3)班月考后补弱' });
+      const r = await api.genSheet({
+        kpName,
+        lessonType,
+        classContext: `${user?.name || '教师'}当前班级的${lessonType}补弱`,
+      });
       setSheet(r.sheet);
       showToast(r.fallback ? '已生成（模板兜底）' : '三档练习已生成');
     } catch (e) {
@@ -111,7 +115,7 @@ export default function Layered() {
       <div className="section-title">
         分层教学工坊
         <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
-          三档练习
+          直接生成练习题
         </span>
       </div>
 
@@ -143,7 +147,7 @@ export default function Layered() {
               </select>
             </label>
             <button type="button" className="btn btn-primary" disabled={busy} onClick={generate}>
-              {busy ? '生成中…' : '✨ 生成三档练习'}
+              {busy ? '生成中…' : '✨ 直接生成三档练习题'}
             </button>
             {sheet && (
               <>
@@ -243,7 +247,7 @@ export default function Layered() {
       {!sheet && (
         <div className="card">
           <div className="card-body empty-state">
-            选择知识点后点击「生成三档练习」
+            选择知识点后点击「直接生成三档练习题」，系统会生成 A/B/C 三档可编辑题目。
           </div>
         </div>
       )}

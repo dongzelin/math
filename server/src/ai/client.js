@@ -22,7 +22,7 @@ export async function chatCompletion({ messages, temperature = 0.6, responseForm
   if (responseFormat) body.response_format = responseFormat;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(timeoutMs || process.env.AI_TIMEOUT_MS || 8000));
+  const timeout = setTimeout(() => controller.abort(), Number(timeoutMs || process.env.AI_TIMEOUT_MS || 3000));
   let res;
   try {
     res = await fetch(url, {

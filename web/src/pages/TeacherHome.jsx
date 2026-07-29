@@ -4,7 +4,7 @@ import { api } from '../api';
 import { AppContext } from '../App.jsx';
 
 export default function TeacherHome() {
-  const { classId, meta, showToast } = useContext(AppContext);
+  const { classId, meta, showToast, user } = useContext(AppContext);
   const [data, setData] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function TeacherHome() {
       <section className="role-home-banner">
         <div>
           <p className="role-home-eyebrow">教师工作台 · {className}</p>
-          <h1>上午好，张老师</h1>
+          <h1>上午好，{user?.name || '老师'}</h1>
           <p>今天从班级的薄弱点开始，把教学安排落到每一位学生的真实作答上。</p>
         </div>
         <div className="role-home-actions">

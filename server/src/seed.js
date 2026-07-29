@@ -185,6 +185,196 @@ db.insert('notifications', {
   link: '/student/profile', is_read: 0, created_at: new Date().toISOString(),
 });
 
+const liuTeacherId = 't-liu';
+const liuClassId = 'cls-gaoer-2';
+db.insert('teachers', { id: liuTeacherId, name: '刘老师', account: 'liu' });
+db.insert('accounts', {
+  id: 'acct-t-liu',
+  role: 'teacher',
+  name: '刘老师',
+  account: 'liu',
+  password_hash: hashPassword('123456'),
+  teacher_id: liuTeacherId,
+  class_id: liuClassId,
+  created_at: new Date().toISOString(),
+});
+db.insert('classes', {
+  id: liuClassId,
+  teacher_id: liuTeacherId,
+  name: '高二(2)班',
+  grade: '高二',
+  subject: '高中数学',
+  created_at: new Date().toISOString(),
+});
+
+const liuNames = [
+  ['L01', '陈雨晴'], ['L02', '刘承宇'], ['L03', '宋子墨'], ['L04', '林嘉怡'],
+  ['L05', '许诺'], ['L06', '周可欣'], ['L07', '唐一凡'], ['L08', '何思源'],
+  ['L09', '魏梓涵'], ['L10', '罗一鸣'], ['L11', '丁悦'], ['L12', '马晨曦'],
+  ['L13', '邹雨萌'], ['L14', '蒋若涵'], ['L15', '贺知远'], ['L16', '沈佳琪'],
+];
+const liuLayers = ['A', 'A', 'A', 'B', 'B', 'B', 'B', 'B', 'B', 'C', 'C', 'C', 'B', 'A', 'B', 'C'];
+const liuStudents = liuNames.map(([no, name], i) => ({
+  id: `stu-${no.toLowerCase()}`,
+  class_id: liuClassId,
+  student_no: no,
+  name,
+  layer: liuLayers[i],
+  is_monitor: i === 1 ? 1 : 0,
+}));
+for (const s of liuStudents) db.insert('students', s);
+db.insert('accounts', {
+  id: 'acct-l01',
+  role: 'student',
+  name: '陈雨晴',
+  account: 'l01',
+  password_hash: hashPassword('123456'),
+  student_id: 'stu-l01',
+  class_id: liuClassId,
+  created_at: new Date().toISOString(),
+});
+
+const liuExams = [
+  { id: 'liu-ex-1', name: '期初诊断', exam_date: '2026-03-06' },
+  { id: 'liu-ex-2', name: '阶段测一', exam_date: '2026-04-12' },
+  { id: 'liu-ex-3', name: '阶段测二', exam_date: '2026-05-20' },
+];
+for (const e of liuExams) {
+  db.insert('exams', { ...e, class_id: liuClassId, total_score: 100 });
+}
+
+function liuScoreFor(studentIndex, kpIndex, examIndex) {
+  const layer = liuLayers[studentIndex];
+  let base = layer === 'A' ? 8.2 : layer === 'C' ? 4.2 : 6.3;
+  if (kpIndex === 2 || kpIndex === 4 || kpIndex === 8) base -= 1.5;
+  if (kpIndex === 5 || kpIndex === 9) base += 0.7;
+  base += examIndex * 0.35;
+  base += ((studentIndex * 5 + kpIndex * 4 + examIndex * 3) % 6) * 0.2 - 0.5;
+  return Math.max(0, Math.min(10, Math.round(base * 2) / 2));
+}
+
+const liuQRows = [];
+const liuScoreRows = [];
+for (const [ei, e] of liuExams.entries()) {
+  for (let qi = 0; qi < kps.length; qi++) {
+    liuQRows.push({
+      id: uuid(),
+      exam_id: e.id,
+      qno: String(qi + 1),
+      max_score: 10,
+      kp_id: kps[qi][0],
+    });
+    for (let si = 0; si < liuStudents.length; si++) {
+      liuScoreRows.push({
+        id: uuid(),
+        exam_id: e.id,
+        student_id: liuStudents[si].id,
+        qno: String(qi + 1),
+        score: liuScoreFor(si, qi, ei),
+      });
+    }
+  }
+}
+db.insertMany('exam_questions', liuQRows);
+db.insertMany('exam_scores', liuScoreRows);
+
+db.insert('grading_reports', {
+  id: 'gr-liu-1',
+  class_id: liuClassId,
+  title: '阶段测二 · 智能批改报告',
+  created_at: new Date().toISOString(),
+  summary_json: JSON.stringify({
+    submitRate: 0.94,
+    avgScore: 65.8,
+    accuracy: 0.68,
+    errorTypes: [
+      { type: '概念', count: 21 },
+      { type: '计算', count: 17 },
+      { type: '审题', count: 14 },
+      { type: '方法', count: 19 },
+      { type: '表达', count: 6 },
+    ],
+    typical: [
+      { qno: '3', kp: '函数奇偶性', tip: '对定义域关于原点对称的前提遗漏' },
+      { qno: '5', kp: '任意角与弧度', tip: '角度制与弧度制转换不稳定' },
+      { qno: '9', kp: '等比数列', tip: '通项与前 n 项和公式混用' },
+    ],
+    students: liuStudents.slice(0, 6).map((s, i) => ({
+      studentId: s.id,
+      name: s.name,
+      score: 58 + i * 4,
+      comment: '',
+      wrong: [
+        { qno: '3', errorType: '概念' },
+        { qno: '9', errorType: '方法' },
+      ],
+    })),
+  }),
+});
+
+db.insert('error_records', {
+  id: uuid(),
+  student_id: 'stu-l01',
+  class_id: liuClassId,
+  kp_name: '函数奇偶性',
+  question: '判断 f(x)=x^3+x 在 R 上的奇偶性，并说明理由',
+  wrong_answer: '偶函数',
+  correct_answer: '奇函数，因 f(-x)=-f(x)',
+  error_type: '概念',
+  source: '阶段测二',
+  created_at: '2026-05-20T10:10:00',
+});
+db.insert('error_records', {
+  id: uuid(),
+  student_id: 'stu-l01',
+  class_id: liuClassId,
+  kp_name: '等比数列',
+  question: '已知等比数列首项为 2，公比为 3，求第 5 项',
+  wrong_answer: '2×3×5',
+  correct_answer: '2×3^4=162',
+  error_type: '方法',
+  source: '阶段测二',
+  created_at: '2026-05-20T10:15:00',
+});
+db.insert('growth_events', {
+  id: uuid(),
+  student_id: 'stu-l01',
+  event_type: 'exam',
+  title: '完成阶段测二',
+  detail: '函数模块掌握稳定，数列模块需要巩固',
+  created_at: '2026-05-20',
+});
+db.insert('growth_events', {
+  id: uuid(),
+  student_id: 'stu-l01',
+  event_type: 'practice',
+  title: '完成补弱练习',
+  detail: '围绕函数奇偶性完成 3 道题',
+  created_at: '2026-05-22',
+});
+db.insert('notifications', {
+  id: uuid(),
+  audience: 'teacher',
+  user_id: liuTeacherId,
+  class_id: liuClassId,
+  title: '阶段测二数据已入库',
+  body: '高二(2)班已有热力图、薄弱 Top5 和分层概览数据',
+  link: '/teacher/diagnosis',
+  is_read: 0,
+  created_at: new Date().toISOString(),
+});
+db.insert('notifications', {
+  id: uuid(),
+  audience: 'student',
+  user_id: 'stu-l01',
+  class_id: liuClassId,
+  title: '刘老师发布了补弱任务',
+  body: '请查看你的学情和错题本，优先复习函数奇偶性',
+  link: '/student/profile',
+  is_read: 0,
+  created_at: new Date().toISOString(),
+});
+
 db.setMeta('seeded_at', new Date().toISOString());
 db.setMeta('demo_class_id', classId);
 db.setMeta('demo_teacher_id', teacherId);

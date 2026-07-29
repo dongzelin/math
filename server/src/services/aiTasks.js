@@ -1,5 +1,111 @@
 import { chatJson, chatCompletion } from '../ai/client.js';
 
+function fallbackItems(kpName) {
+  if (kpName.includes('函数单调性')) {
+    return {
+      A: [
+        {
+          stem: '【A1】已知 f(x)=x+1/x，求 f(x) 在 (0,+∞) 上的单调区间，并说明理由。',
+          answer: '可用导数或作差法：在 (0,1] 上递减，在 [1,+∞) 上递增。',
+          difficulty: '难',
+          kp: kpName,
+        },
+        {
+          stem: '【A2】已知 f(x)=ax²-2x+1 在 [1,3] 上单调递增，求实数 a 的取值范围。',
+          answer: '转化为 f′(x)=2ax-2 在 [1,3] 上恒非负，得 a≥1。',
+          difficulty: '难',
+          kp: kpName,
+        },
+      ],
+      B: [
+        {
+          stem: '【B1】判断函数 f(x)=2x-3 在 R 上的单调性，并写出理由。',
+          answer: '一次函数斜率 2>0，所以在 R 上单调递增。',
+          difficulty: '中',
+          kp: kpName,
+        },
+        {
+          stem: '【B2】已知 f(x)=x²，分别写出它在 (-∞,0] 和 [0,+∞) 上的单调性。',
+          answer: '在 (-∞,0] 上递减，在 [0,+∞) 上递增。',
+          difficulty: '中',
+          kp: kpName,
+        },
+        {
+          stem: '【B3】若函数在区间 I 上任取 x1<x2 都有 f(x1)<f(x2)，说明它在 I 上具有什么性质？',
+          answer: '函数在区间 I 上单调递增。',
+          difficulty: '中',
+          kp: kpName,
+        },
+      ],
+      C: [
+        {
+          stem: '【C1】填空：函数单调性讨论前，应先明确函数的____。',
+          answer: '定义域或讨论区间。',
+          difficulty: '易',
+          kp: kpName,
+        },
+        {
+          stem: '【C2】判断：f(x)=x² 在整个 R 上单调递增。对还是错？',
+          answer: '错。它在 (-∞,0] 上递减，在 [0,+∞) 上递增。',
+          difficulty: '易',
+          kp: kpName,
+        },
+      ],
+    };
+  }
+
+  return {
+    A: [
+      {
+        stem: `【A1】围绕「${kpName}」设计一道综合应用题：先列出已知条件，再写出完整解题步骤。`,
+        answer: '先明确适用条件，再建立模型，最后求解并检验结果。',
+        difficulty: '难',
+        kp: kpName,
+      },
+      {
+        stem: `【A2】将「${kpName}」与函数或数列知识结合，完成一道拓展题并说明关键转化。`,
+        answer: '抓住知识点定义，完成条件转化，再分步求解。',
+        difficulty: '难',
+        kp: kpName,
+      },
+    ],
+    B: [
+      {
+        stem: `【B1】写出「${kpName}」的一个核心定义或判定方法，并举一个简单例子。`,
+        answer: '定义表述准确，例子与知识点匹配即可。',
+        difficulty: '中',
+        kp: kpName,
+      },
+      {
+        stem: `【B2】完成一道「${kpName}」常规题，要求写出主要步骤和答案。`,
+        answer: '按定义、公式或基本性质逐步作答。',
+        difficulty: '中',
+        kp: kpName,
+      },
+      {
+        stem: `【B3】指出学习「${kpName}」时最容易忽略的一个条件，并说明原因。`,
+        answer: '能说出适用范围、定义域、公式条件等关键限制即可。',
+        difficulty: '中',
+        kp: kpName,
+      },
+    ],
+    C: [
+      {
+        stem: `【C1】填空：「${kpName}」解题前要先看清题目给出的____和要求。`,
+        answer: '条件。',
+        difficulty: '易',
+        kp: kpName,
+      },
+      {
+        stem: `【C2】判断：遇到「${kpName}」题目时，可以不检查公式或性质的适用条件。对还是错？`,
+        answer: '错。必须先检查适用条件。',
+        difficulty: '易',
+        kp: kpName,
+      },
+    ],
+  };
+}
+
 const FALLBACK_SHEET = (kpName, lessonType) => ({
   kpName,
   lessonType: lessonType || '巩固练',
@@ -7,60 +113,15 @@ const FALLBACK_SHEET = (kpName, lessonType) => ({
   layers: {
     A: {
       label: 'A 档 · 拔高',
-      items: [
-        {
-          stem: `【A1】已知与「${kpName}」相关的综合题：请写出关键步骤与结论。`,
-          answer: '（模板）先明确定义与条件，再分类讨论或构造函数求解。',
-          difficulty: '难',
-          kp: kpName,
-        },
-        {
-          stem: `【A2】拓展：将「${kpName}」与已学模块综合应用一题。`,
-          answer: '（模板）建立模型 → 转化 → 求解 → 检验。',
-          difficulty: '难',
-          kp: kpName,
-        },
-      ],
+      items: fallbackItems(kpName).A,
     },
     B: {
       label: 'B 档 · 达标',
-      items: [
-        {
-          stem: `【B1】关于「${kpName}」的基础巩固题（选择/填空）。`,
-          answer: '（模板）对照定义与基本性质作答。',
-          difficulty: '中',
-          kp: kpName,
-        },
-        {
-          stem: `【B2】「${kpName}」常见题型变式一题。`,
-          answer: '（模板）注意边界条件与常见陷阱。',
-          difficulty: '中',
-          kp: kpName,
-        },
-        {
-          stem: `【B3】小结：用自己的话说明「${kpName}」的核心要点。`,
-          answer: '（模板）定义 + 判定 + 典型应用。',
-          difficulty: '中',
-          kp: kpName,
-        },
-      ],
+      items: fallbackItems(kpName).B,
     },
     C: {
       label: 'C 档 · 补基',
-      items: [
-        {
-          stem: `【C1】「${kpName}」概念填空/判断题。`,
-          answer: '（模板）回顾课本定义。',
-          difficulty: '易',
-          kp: kpName,
-        },
-        {
-          stem: `【C2】「${kpName}」模仿例题完成计算。`,
-          answer: '（模板）逐步对照例题格式。',
-          difficulty: '易',
-          kp: kpName,
-        },
-      ],
+      items: fallbackItems(kpName).C,
     },
   },
   source: 'fallback',

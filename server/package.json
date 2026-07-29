@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "ensure:liu": "node scripts/ensure-liu-demo.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
