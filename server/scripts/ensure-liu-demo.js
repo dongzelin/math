@@ -88,15 +88,18 @@ for (const student of students) {
   });
 }
 
-upsert('accounts', 'acct-l01', {
-  role: 'student',
-  name: '陈雨晴',
-  account: 'l01',
-  password_hash: hashPassword('123456'),
-  student_id: 'stu-l01',
-  class_id: classId,
-  created_at: now,
-});
+for (const student of students.slice(0, 5)) {
+  const account = student.student_no.toLowerCase();
+  upsert('accounts', `acct-${account}`, {
+    role: 'student',
+    name: student.name,
+    account,
+    password_hash: hashPassword('123456'),
+    student_id: student.id,
+    class_id: classId,
+    created_at: now,
+  });
+}
 
 const exams = [
   { id: 'liu-ex-1', name: '期初诊断', exam_date: '2026-03-06' },

@@ -223,16 +223,19 @@ const liuStudents = liuNames.map(([no, name], i) => ({
   is_monitor: i === 1 ? 1 : 0,
 }));
 for (const s of liuStudents) db.insert('students', s);
-db.insert('accounts', {
-  id: 'acct-l01',
-  role: 'student',
-  name: '陈雨晴',
-  account: 'l01',
-  password_hash: hashPassword('123456'),
-  student_id: 'stu-l01',
-  class_id: liuClassId,
-  created_at: new Date().toISOString(),
-});
+for (const student of liuStudents.slice(0, 5)) {
+  const account = student.student_no.toLowerCase();
+  db.insert('accounts', {
+    id: `acct-${account}`,
+    role: 'student',
+    name: student.name,
+    account,
+    password_hash: hashPassword('123456'),
+    student_id: student.id,
+    class_id: liuClassId,
+    created_at: new Date().toISOString(),
+  });
+}
 
 const liuExams = [
   { id: 'liu-ex-1', name: '期初诊断', exam_date: '2026-03-06' },
